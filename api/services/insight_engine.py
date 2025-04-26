@@ -5,6 +5,8 @@ import tempfile, os
 from supabase import create_client
 import uuid, datetime
 from api.services.data_cleaner import clean_sales_data
+from api.services.metrics import calc_lead_source_roi, calc_rep_leaderboard
+from typing import Dict, Any
 
 # init Supabase once
 import os as _os
@@ -12,7 +14,26 @@ _supabase = create_client(
     _os.getenv("SUPABASE_URL"), _os.getenv("SUPABASE_SERVICE_KEY")
 )
 
-def generate(intent: dict, df: DataFrame) -> dict:
+def generate(insight_request: Dict[str, Any], dataframe: pd.DataFrame) -> Dict[str, Any]:
+    intent = insight_request.get("intent")
+
+    registry = {
+        "lead_source_roi": calc_lead_source_roi,
+        "rep_leaderboard": calc_rep_leaderboard,
+    }
+
+    if intent not in registry:
+        raise ValueError(f"Unknown intent '{intent}'")
+
+    df_clean = clean_sales_data(dataframe)
+    results = registry[intent](df_clean)
+
+    return {
+        "intent": intent,
+        "results": results
+    }
+
+def generate_legacy(intent: dict, df: DataFrame) -> dict:
     df = clean_sales_data(df)
     metric = intent["metric"]
     agg = intent["aggregation"]  # "sum" | "mean" | "count"
