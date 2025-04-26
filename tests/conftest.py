@@ -11,6 +11,11 @@ import uuid
 import os
 
 # Ensure environment variables are set
+# SUPABASE_URL and SUPABASE_SERVICE_KEY are required for running tests,
+# even though we mock the Supabase client. These variables are used in the
+# initialization process and must be present in the environment.
+# In CI, these are set as GitHub Secrets and passed to the workflow.
+# Locally, they are loaded from .env.test file at the project root.
 if not os.getenv('SUPABASE_URL') or not os.getenv('SUPABASE_SERVICE_KEY'):
     raise EnvironmentError("Required Supabase environment variables are not set")
 
