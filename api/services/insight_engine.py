@@ -53,10 +53,8 @@ def generate(insight_request: Dict[str, Any], dataframe: pd.DataFrame) -> Dict[s
     df_clean = clean_sales_data(dataframe)
     data = registry[intent](df_clean)
 
-    # For lead_source_roi, assume data is a DataFrame
     if intent == "lead_source_roi":
         df_result = pd.DataFrame(data)
-        # Prepare headline dict for template
         top = df_result.iloc[0]
         lag = df_result.iloc[-1]
         headline = {
@@ -75,6 +73,15 @@ def generate(insight_request: Dict[str, Any], dataframe: pd.DataFrame) -> Dict[s
             "html": html,
             "chart_url": chart_url,
             "data": df_result.to_dict(),
+        }
+    elif intent in ["cost_per_sale_by_vendor", "sales_by_salesperson", "new_vs_used"]:
+        headline = data["headline"]
+        template = _env.get_template(f"{intent}.j2")
+        html = template.render(**headline)
+        return {
+            "title": intent,
+            "html": html,
+            "data": data,
         }
     else:
         # Fallback for other metrics
