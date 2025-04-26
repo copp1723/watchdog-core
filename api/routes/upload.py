@@ -1,5 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 import uuid, shutil, os, tempfile
+from api.services.parser import validate_csv
 
 router = APIRouter(prefix="/v1", tags=["upload"])
 
@@ -14,4 +15,12 @@ async def upload_csv(file: UploadFile = File(...)):
     with open(tmp_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    return {"upload_id": upload_id} 
+    try:
+        rows = validate_csv(tmp_path)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return {
+        "upload_id": upload_id,
+        "rows": len(rows)
+    } 
