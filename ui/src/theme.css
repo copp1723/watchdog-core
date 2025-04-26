@@ -1,0 +1,28 @@
+
+:root {
+  /* Light theme (default) */
+  --background: #ffffff;
+  --foreground: #1a1a1a;
+  --secondary-bg: #f5f5f5;
+  --muted: rgba(0, 0, 0, 0.05);
+  --muted-foreground: rgba(0, 0, 0, 0.45);
+  --chat-user: rgba(0, 0, 0, 0.03);
+  --chat-assistant: rgba(0, 0, 0, 0.02);
+  --accent: #FF5757;
+  --accent-foreground: #ffffff;
+  --success: #4CAF50;
+}
+
+.dark {
+  /* Dark theme */
+  --background: #121212;
+  --foreground: #ffffff;
+  --secondary-bg: #1E1E1E;
+  --muted: rgba(255, 255, 255, 0.05);
+  --muted-foreground: rgba(255, 255, 255, 0.45);
+  --chat-user: rgba(255, 255, 255, 0.03);
+  --chat-assistant: rgba(255, 255, 255, 0.02);
+  --accent: #FF5757;
+  --accent-foreground: #ffffff;
+  --success: #4CAF50;
+}
