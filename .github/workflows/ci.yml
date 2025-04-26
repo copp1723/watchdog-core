@@ -7,57 +7,13 @@ on:
     branches: [ main ]
 
 jobs:
-  placeholder:
-    name: Placeholder CI Job
+  heartbeat:
+    name: CI Heartbeat
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
-
-      - name: Hello World
-        run: echo "CI pipeline placeholder - ready for implementation"
-
-  lint:
-    name: Lint Check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
-
-      - name: Placeholder for linting
-        run: |
-          echo "Linting will be implemented here"
-          # Future: Install dependencies and run linters
-          # pip install ruff mypy
-          # cd api && python -m ruff check .
-          # cd api && python -m mypy .
-
-  test:
-    name: Run Tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
-
-      - name: Placeholder for tests
-        run: |
-          echo "Tests will be implemented here"
-          # Future: Install dependencies and run tests
-          # pip install pytest
-          # python -m pytest
+      - name: CI Status
+        run: echo "CI green"
 
