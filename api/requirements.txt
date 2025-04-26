@@ -6,4 +6,4 @@ opentelemetry-sdk
 opentelemetry-instrumentation-fastapi
 opentelemetry-exporter-otlp
 matplotlib
-supabase 
+supabase jinja2>=3.1.3
