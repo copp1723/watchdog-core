@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from api.services.insight_engine import generate
+from api.services.insight_engine import generate, generate_legacy
 from api.services.parser import validate_csv
 from api.routes.upload import tempfile
 import os, json
@@ -17,6 +17,11 @@ async def analyze(upload_id: str, query: dict):
 
     df = pd.DataFrame([r.model_dump() for r in rows])
 
-    # TEMP: ask LLM later; for now accept query body as intent
-    insight = generate(query, df)
+    # Check if this is a legacy query format with metric and aggregation
+    if "metric" in query and "aggregation" in query:
+        insight = generate_legacy(query, df)
+    else:
+        # New format with intent
+        insight = generate(query, df)
+        
     return insight 
