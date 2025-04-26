@@ -6,6 +6,8 @@ from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from fastapi import FastAPI
 from api.routes import upload  # <-- import
 from api.routes import debug
+from api.routes import analyze
+from api.otel import instrument_fastapi
 
 sentry_sdk.init(
     dsn=os.getenv("SENTRY_DSN", ""),
@@ -14,8 +16,10 @@ sentry_sdk.init(
 
 app = FastAPI(title="Watchdog Core API")
 app.add_middleware(SentryAsgiMiddleware)
+instrument_fastapi(app)
 app.include_router(upload.router)  # <-- mount
 app.include_router(debug.router)
+app.include_router(analyze.router)
 
 
 @app.get("/healthz")
@@ -27,4 +31,9 @@ async def health_check() -> dict[str, str]:
         A status response indicating the API is operational.
     """
     return {"status": "ok"}
+
+
+@app.get("/metrics")
+async def metrics():
+    return {"status": "metrics stub"}
 

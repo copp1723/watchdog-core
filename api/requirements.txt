@@ -1,4 +1,9 @@
 python-multipart
 pydantic>=2,<3
 pandas
-sentry-sdk[fastapi] 
+sentry-sdk[fastapi]
+opentelemetry-sdk
+opentelemetry-instrumentation-fastapi
+opentelemetry-exporter-otlp
+matplotlib
+supabase 
