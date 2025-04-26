@@ -2,8 +2,10 @@
 Main FastAPI application for Watchdog Core.
 """
 from fastapi import FastAPI
+from api.routes import upload  # <-- import
 
 app = FastAPI(title="Watchdog Core API")
+app.include_router(upload.router)  # <-- mount
 
 
 @app.get("/healthz")
