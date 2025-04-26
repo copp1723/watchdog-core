@@ -1,0 +1,4 @@
+"""
+Watchdog Core API package.
+"""
+
