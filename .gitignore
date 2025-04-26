@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+.venv/
+*.py[cod]
+.mypy_cache/
+.pytest_cache/
+*.so
+*.egg
+*.egg-info/
+.eggs/
+.coverage
+htmlcov/
+
+# Node / UI
+ui/node_modules/
+.next/
+dist/
+build/
+.npm
+*.tsbuildinfo
+.cache/
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Misc
+.env
+.env.*
+*.log
+*.bak
+*.tmp
+
+# Local development
+.scratch/
+

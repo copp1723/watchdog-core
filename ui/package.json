@@ -1,0 +1,23 @@
+{
+  "name": "watchdog-ui",
+  "private": true,
+  "version": "0.0.0",
+  "description": "UI for Watchdog AI dealership insights system",
+  "scripts": {
+    "dev": "echo \"Add development script\"",
+    "build": "echo \"Add build script\"",
+    "start": "echo \"Add start script\"",
+    "lint": "echo \"Add lint script\"",
+    "test": "echo \"Add test script\""
+  },
+  "dependencies": {
+    
+  },
+  "devDependencies": {
+    
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+
