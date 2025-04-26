@@ -1,0 +1,44 @@
+name: Budget Guard
+
+on:
+  schedule:
+    - cron:  "0 4 * * *"    # every day at 04:00 UTC
+  workflow_dispatch:
+
+jobs:
+  cap-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query monthly spend
+        id: spend
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          python - <<'PY'
+          import os, json, sys, datetime
+          from supabase import create_client
+          sb = create_client(os.environ["SUPABASE_URL"], os.environ["SUPABASE_SERVICE_KEY"])
+          res = sb.rpc("monthly_spend_usd").execute()
+          spend = float(res.data) if res.data else 0.0
+          print(f"::set-output name=spend::{spend}")
+          PY
+
+      - name: Decide
+        if: ${{ steps.spend.outputs.spend }} >= 45
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          echo "Spend cap exceeded: ${{ steps.spend.outputs.spend }} USD"
+          # Set env var via Vercel API
+          curl -X PATCH "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env/LLM_DISABLED" \
+               -H "Authorization: Bearer $VERCEL_TOKEN" \
+               -H "Content-Type: application/json" \
+               --data '{"value":"true","target":["production","preview"]}'
+
+          # Trigger redeploy so new env var takes effect
+          curl -X POST "https://api.vercel.com/v13/deployments" \
+               -H "Authorization: Bearer $VERCEL_TOKEN" \
+               -H "Content-Type: application/json" \
+               --data "{\"name\":\"watchdog-core\",\"project\":\"$VERCEL_PROJECT_ID\"}" 
