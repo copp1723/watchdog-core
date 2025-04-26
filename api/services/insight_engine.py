@@ -6,6 +6,7 @@ from supabase import create_client
 import uuid, datetime
 from api.services.data_cleaner import clean_sales_data
 from api.services.metrics import calc_lead_source_roi, calc_rep_leaderboard
+from api.services.metrics_sales import cost_per_sale, cost_per_sale_by_vendor, sales_by_salesperson, new_vs_used
 from typing import Dict, Any
 
 # init Supabase once
@@ -20,6 +21,10 @@ def generate(insight_request: Dict[str, Any], dataframe: pd.DataFrame) -> Dict[s
     registry = {
         "lead_source_roi": calc_lead_source_roi,
         "rep_leaderboard": calc_rep_leaderboard,
+        "cost_per_sale": cost_per_sale,
+        "cost_per_sale_by_vendor": cost_per_sale_by_vendor,
+        "sales_by_salesperson": sales_by_salesperson,
+        "new_vs_used": new_vs_used,
     }
 
     if intent not in registry:
