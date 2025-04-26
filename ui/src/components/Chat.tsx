@@ -3,11 +3,21 @@ import React, { useState } from 'react';
 import { FileUp, Send, ChartBar, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Card } from '@/components/ui/card';
 import { InsightCard } from './InsightCard';
 import { SuggestionChip } from './SuggestionChip';
+import { toast } from '@/components/ui/use-toast';
+
+interface Insight {
+  html: string;
+  chart_url: string;
+}
 
 export const Chat = () => {
   const [inputValue, setInputValue] = useState('');
+  const [insights, setInsights] = useState<Insight[]>([]);
+  const [currentIntent, setCurrentIntent] = useState('general_analysis');
+  const [uploadId, setUploadId] = useState<string | null>(null);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(e.target.value);
@@ -29,17 +39,93 @@ export const Chat = () => {
         method: 'POST',
         body: formData,
       });
+      
+      if (!response.ok) {
+        throw new Error(`Upload failed with status: ${response.status}`);
+      }
+      
       const json = await response.json();
       console.log('Upload response:', json);
+      
+      // Set the upload ID from the response
+      if (json.id) {
+        setUploadId(json.id);
+        
+        // Fetch insight for the uploaded file
+        await fetchInsight(json.id);
+      } else {
+        toast({
+          title: "Upload Error",
+          description: "Failed to get upload ID from server response",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error('Upload error:', error);
+      toast({
+        title: "Upload Failed",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleSend = () => {
+  const fetchInsight = async (uploadId: string) => {
+    try {
+      const res = await fetch(`/v1/analyze/${uploadId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ intent: currentIntent }),
+      });
+      
+      if (!res.ok) {
+        throw new Error(`Analysis failed with status: ${res.status}`);
+      }
+      
+      const insight = await res.json();
+      setInsights(prev => [...prev, insight]);
+    } catch (error) {
+      console.error('Analysis error:', error);
+      toast({
+        title: "Analysis Failed",
+        description: error instanceof Error ? error.message : "Failed to analyze the uploaded data",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSend = async () => {
     if (!inputValue.trim()) return;
     console.log('Sending message:', inputValue);
+    
+    // Update intent based on user input
+    setCurrentIntent(inferIntentFromInput(inputValue));
+    
+    // If we have an upload ID, fetch new insights with the updated intent
+    if (uploadId) {
+      try {
+        await fetchInsight(uploadId);
+      } catch (error) {
+        console.error('Failed to get insights:', error);
+      }
+    }
+    
     setInputValue('');
+  };
+
+  // A simple function to infer intent from user input
+  const inferIntentFromInput = (input: string): string => {
+    const lowercaseInput = input.toLowerCase();
+    
+    if (lowercaseInput.includes('sales') || lowercaseInput.includes('revenue')) {
+      return 'sales_analysis';
+    } else if (lowercaseInput.includes('profit') || lowercaseInput.includes('margin')) {
+      return 'profit_analysis';
+    } else if (lowercaseInput.includes('customer') || lowercaseInput.includes('client')) {
+      return 'customer_analysis';
+    }
+    
+    return 'general_analysis';
   };
 
   return (
@@ -92,6 +178,26 @@ export const Chat = () => {
             </div>
           </div>
         </div>
+        
+        {/* Render insights */}
+        {insights.length > 0 && (
+          <div className="flex items-start space-x-4 max-w-[85%]">
+            <div className="flex-1 space-y-4">
+              <div className="bg-[#1E1E1E] rounded-xl p-4 text-foreground">
+                <p className="text-base leading-relaxed">I've analyzed your data and found some insights:</p>
+              </div>
+              
+              {insights.map((insight, idx) => (
+                <Card key={idx} className="bg-[#1b1b1d] p-4 my-4">
+                  <div dangerouslySetInnerHTML={{ __html: insight.html }} />
+                  {insight.chart_url && (
+                    <img src={insight.chart_url} className="w-full mt-4 rounded-xl" />
+                  )}
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Input area */}
