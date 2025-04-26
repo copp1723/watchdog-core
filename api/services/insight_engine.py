@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import tempfile, os
 from supabase import create_client
 import uuid, datetime
+from api.services.data_cleaner import clean_sales_data
 
 # init Supabase once
 import os as _os
@@ -12,6 +13,7 @@ _supabase = create_client(
 )
 
 def generate(intent: dict, df: DataFrame) -> dict:
+    df = clean_sales_data(df)
     metric = intent["metric"]
     agg = intent["aggregation"]  # "sum" | "mean" | "count"
     group_by = intent.get("category")
