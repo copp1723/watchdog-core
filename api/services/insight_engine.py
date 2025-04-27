@@ -19,7 +19,10 @@ _supabase = create_client(
     _os.getenv("SUPABASE_URL"), _os.getenv("SUPABASE_SERVICE_KEY")
 )
 
-_env = Environment(loader=FileSystemLoader("templates/insights"))
+_env = Environment(
+    loader=FileSystemLoader("templates/insights"),
+    autoescape=True
+)
 
 # Helper to upload chart and return public URL
 def upload_chart(df):
