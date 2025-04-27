@@ -6,7 +6,7 @@ import pandas as pd
 def cost_per_sale(df: pd.DataFrame) -> float:
     return df['expense'].sum() / len(df)
 
-def cost_per_sale_by_vendor(df: pd.DataFrame) -> dict[str, Any]:
+def cost_per_sale_by_vendor(df: pd.DataFrame) -> dict[str, float | str | dict[str, float | str]]:
     cps = df.groupby('lead_source')['expense'].mean().to_dict()
     if not cps:
         return {}

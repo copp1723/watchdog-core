@@ -53,6 +53,7 @@ jobs:
           pip install -r requirements-dev.txt
           pip install -r requirements-test.txt
           pip install -r api/requirements.txt
+          pip install pandas-stubs
           
       - name: Run mypy
         run: |
