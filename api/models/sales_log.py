@@ -25,7 +25,7 @@ class SalesLogRow(BaseModel):
     
     # Categorical fields
     lead_source: Optional[str] = Field(None, description="Source of the lead (marketing channel)")
-    sales_rep_name: Optional[str] = Field(None, description="Name of the sales representative")
+    sales_rep_name: Optional[str] = Field(None, description="Name of the sales representative", alias="salesperson")
     is_new: Optional[bool] = Field(None, description="Whether the vehicle was new or used")
     
     # Derived financial metrics
