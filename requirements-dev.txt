@@ -1,0 +1,12 @@
+# Linting
+ruff
+
+# Security Scanning
+bandit
+
+# Type Checking
+mypy
+
+# Testing
+pytest
+
