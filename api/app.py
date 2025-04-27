@@ -2,7 +2,7 @@
 Main FastAPI application for Watchdog Core.
 """
 import os
-from typing import Any
+from typing import Any, Dict
 
 import sentry_sdk
 from fastapi import FastAPI
@@ -29,7 +29,7 @@ app.include_router(analyze.router)
 
 
 @app.get("/healthz")
-async def health_check() -> dict[str, str]:
+async def health_check() -> Dict[str, str]:
     """
     Health check endpoint.
     
@@ -40,6 +40,6 @@ async def health_check() -> dict[str, str]:
 
 
 @app.get("/metrics")
-async def metrics() -> dict[str, str]:
+async def metrics() -> Dict[str, str]:
     return {"status": "metrics stub"}
 
