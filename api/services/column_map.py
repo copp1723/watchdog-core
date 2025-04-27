@@ -1,15 +1,17 @@
 """
 Column mapping service for handling different CSV formats and field naming conventions.
 
-This module provides functionality to normalize column names from various dealer CSV exports
-to a standard canonical format, allowing the application to work with different data formats
-without requiring manual intervention.
+This module provides functionality to normalize column names from various dealer CSV 
+exports to a standard canonical format, allowing the application to work with different 
+data formats without requiring manual intervention.
 """
 
-from typing import Dict, List, Set
+from typing import Dict, List
+
 import pandas as pd
 
-# Dictionary mapping canonical field names to all possible aliases that might be found in CSV files
+# Dictionary mapping canonical field names to all possible aliases that might 
+# be found in CSV files
 ALIAS_MAP: Dict[str, List[str]] = {
     "sold_date":  ["sold_date", "date_sold", "sale_date"],
     "vehicle":    ["vehicle", "model", "vehicle_desc"],

@@ -20,4 +20,4 @@ def validate_csv(path: str) -> list[SalesLogRow]:
     try:
         return [SalesLogRow(**row.to_dict()) for _, row in df.iterrows()]
     except ValidationError as e:
-        raise ValueError(e.errors()) from e 
+        raise ValueError(e.errors()) from e
