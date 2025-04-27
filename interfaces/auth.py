@@ -6,6 +6,6 @@ Interface for authentication operations.
 class AuthClient:
     """Interface for authentication operations."""
     
-    def __init__(self):
+    def __init__(self) -> None:
         raise NotImplementedError()
 

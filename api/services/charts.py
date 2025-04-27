@@ -1,12 +1,15 @@
-import matplotlib.pyplot as plt
-import tempfile, os
-from supabase import create_client
-import uuid
+import os
 import os as _os
+import tempfile
+import uuid
+from typing import cast
+
+import matplotlib.pyplot as plt
 import pandas as pd
+from supabase import create_client
 
 _supabase = create_client(
-    _os.getenv("SUPABASE_URL"), _os.getenv("SUPABASE_SERVICE_KEY")
+    cast(str, _os.getenv("SUPABASE_URL")), cast(str, _os.getenv("SUPABASE_SERVICE_KEY"))
 )
 
 CHART_STYLES = {
@@ -25,7 +28,13 @@ BAR_COLOR = '#2A7FFF'
 STACKED_COLORS = ['#2A7FFF', '#FFB32A']
 
 
-def generate_chart(data: pd.DataFrame, chart_type: str, title: str = "", xlabel: str = "", ylabel: str = "") -> str:
+def generate_chart(
+    data: pd.DataFrame,
+    chart_type: str,
+    title: str = "",
+    xlabel: str = "",
+    ylabel: str = "",
+) -> str:
     fig, ax = plt.subplots(figsize=(7, 4))
     if chart_type == "horizontal_bar":
         data.plot(kind="barh", color=BAR_COLOR, ax=ax, legend=False)
@@ -56,4 +65,4 @@ def generate_chart(data: pd.DataFrame, chart_type: str, title: str = "", xlabel:
         .replace(" ", "%20")
     )
     os.remove(tmp.name)
-    return url 
+    return cast(str, url) 

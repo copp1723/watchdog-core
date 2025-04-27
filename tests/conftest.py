@@ -1,14 +1,16 @@
-# Load environment variables first, before any imports
+# Standard library imports
+import os
+import uuid
 from pathlib import Path
+from unittest.mock import patch
+from typing import Generator
+
+# Third-party imports
+import pytest
 from dotenv import load_dotenv
 
 # Load test environment variables
 load_dotenv(Path(__file__).parent.parent / '.env.test')
-
-import pytest
-from unittest.mock import MagicMock, patch
-import uuid
-import os
 
 # Ensure environment variables are set
 # SUPABASE_URL and SUPABASE_SERVICE_KEY are required for running tests,
@@ -21,26 +23,26 @@ if not os.getenv('SUPABASE_URL') or not os.getenv('SUPABASE_SERVICE_KEY'):
 
 # Mock for Supabase client
 class MockSupabase:
-    def __init__(self):
-        self.storage = MockStorage()
+    def __init__(self) -> None:
+        self.storage: MockStorage = MockStorage()
 
 class MockStorage:
-    def __init__(self):
+    def __init__(self) -> None:
         # Pre-create the charts bucket since it's used in tests
-        self.buckets = {"charts": {}}
+        self.buckets: dict[str, dict[str, bool]] = {"charts": {}}
     
-    def from_(self, bucket_name):
+    def from_(self, bucket_name: str) -> "MockBucket":
         # Always return a valid bucket object, even if the bucket doesn't exist
         if bucket_name not in self.buckets:
             self.buckets[bucket_name] = {}
         return MockBucket(self.buckets[bucket_name], bucket_name)
 
 class MockBucket:
-    def __init__(self, storage, bucket_name):
+    def __init__(self, storage: dict[str, bool], bucket_name: str) -> None:
         self.storage = storage
         self.bucket_name = bucket_name
     
-    def upload(self, file_name, file_obj):
+    def upload(self, file_name: str, file_obj: object) -> dict[str, str]:
         """
         Mock upload function that handles file objects of any type
         """
@@ -48,21 +50,21 @@ class MockBucket:
         if hasattr(file_obj, 'close') and callable(file_obj.close):
             try:
                 file_obj.close()
-            except:
+            except Exception:
                 pass
                 
         # Store a reference that we got this file
         self.storage[file_name] = True
         return {"Key": file_name}
     
-    def get_public_url(self, file_name):
+    def get_public_url(self, file_name: str) -> str:
         """
         Return a predictable URL for testing
         """
         return f"http://mock-supabase-{self.bucket_name}.com/{file_name}"
 
 @pytest.fixture(autouse=True)
-def mock_supabase():
+def mock_supabase() -> Generator[MockSupabase, None, None]:
     """
     Automatically patch the Supabase client in all tests.
     This fixture runs automatically for all tests.
@@ -76,7 +78,7 @@ def mock_supabase():
             yield mock_client
 
 @pytest.fixture
-def mock_uuid():
+def mock_uuid() -> Generator[str, None, None]:
     """
     Fixture to mock uuid.uuid4() for consistent test results
     """

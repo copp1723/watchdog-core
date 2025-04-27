@@ -1,4 +1,6 @@
 from fastapi import APIRouter, HTTPException
+from typing import NoReturn
+
 router = APIRouter(prefix="/debug")
 
 @router.get("/boom")

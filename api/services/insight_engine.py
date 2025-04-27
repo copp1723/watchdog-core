@@ -1,28 +1,44 @@
 import matplotlib
+
 matplotlib.use('Agg')  # Must be before any other matplotlib imports
 
-from pandas import DataFrame
-import pandas as pd
-import matplotlib.pyplot as plt
-import tempfile, os
-from supabase import create_client
-import uuid, datetime
-from api.services.data_cleaner import clean_sales_data
-from api.services.metrics import calc_lead_source_roi, calc_rep_leaderboard
-from api.services.metrics_sales import cost_per_sale, cost_per_sale_by_vendor, sales_by_salesperson, new_vs_used
-from typing import Dict, Any
-from jinja2 import Environment, FileSystemLoader
+# Standard library imports
+import os
 
 # init Supabase once
 import os as _os
-_supabase = create_client(
-    _os.getenv("SUPABASE_URL"), _os.getenv("SUPABASE_SERVICE_KEY")
+import tempfile
+import uuid
+from typing import Any, Dict, cast
+
+# Third-party imports
+import matplotlib.pyplot as plt
+import pandas as pd
+from jinja2 import Environment, FileSystemLoader
+from pandas import DataFrame
+from supabase import create_client
+
+# Local application imports
+from api.services.data_cleaner import clean_sales_data
+from api.services.metrics import calc_lead_source_roi, calc_rep_leaderboard
+from api.services.metrics_sales import (
+    cost_per_sale,
+    cost_per_sale_by_vendor,
+    new_vs_used,
+    sales_by_salesperson,
 )
 
-_env = Environment(loader=FileSystemLoader("templates/insights"))
+_supabase = create_client(
+    cast(str, _os.getenv("SUPABASE_URL")), cast(str, _os.getenv("SUPABASE_SERVICE_KEY"))
+)
+
+_env = Environment(
+    loader=FileSystemLoader("templates/insights"),
+    autoescape=True
+)
 
 # Helper to upload chart and return public URL
-def upload_chart(df):
+def upload_chart(df: pd.DataFrame) -> str:
     fig, ax = plt.subplots()
     df["net_profit"].plot(kind="barh", ax=ax)
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
@@ -36,9 +52,12 @@ def upload_chart(df):
         .replace(" ", "%20")
     )
     os.remove(tmp.name)
-    return url
+    return cast(str, url)
 
-def generate(insight_request: Dict[str, Any], dataframe: pd.DataFrame) -> Dict[str, Any]:
+def generate(
+    insight_request: Dict[str, Any], 
+    dataframe: pd.DataFrame
+) -> Dict[str, Any]:
     intent = insight_request.get("intent")
 
     registry = {
@@ -57,7 +76,7 @@ def generate(insight_request: Dict[str, Any], dataframe: pd.DataFrame) -> Dict[s
     data = registry[intent](df_clean)
 
     if intent == "lead_source_roi":
-        df_result = pd.DataFrame(data)
+        df_result = pd.DataFrame(cast(list[dict[str, Any]], data))
         top = df_result.iloc[0]
         lag = df_result.iloc[-1]
         headline = {
@@ -66,7 +85,10 @@ def generate(insight_request: Dict[str, Any], dataframe: pd.DataFrame) -> Dict[s
             "top_speed": int(top["avg_days"]),
             "lagging_source": lag["lead_source"],
             "shift_budget": 1000,  # Example static value
-            "roi_delta": (top["net_profit"] - lag["net_profit"]) / lag["net_profit"] if lag["net_profit"] else 0,
+            "roi_delta": (
+                (top["net_profit"] - lag["net_profit"]) / lag["net_profit"] 
+                if lag["net_profit"] else 0
+            ),
         }
         chart_url = upload_chart(df_result)
         template = _env.get_template(f"{intent}.j2")
@@ -78,7 +100,8 @@ def generate(insight_request: Dict[str, Any], dataframe: pd.DataFrame) -> Dict[s
             "data": df_result.to_dict(),
         }
     elif intent in ["cost_per_sale_by_vendor", "sales_by_salesperson", "new_vs_used"]:
-        headline = data["headline"]
+        data_dict = cast(dict[str, Any], data)
+        headline = data_dict["headline"]
         template = _env.get_template(f"{intent}.j2")
         html = template.render(**headline)
         return {
@@ -93,7 +116,7 @@ def generate(insight_request: Dict[str, Any], dataframe: pd.DataFrame) -> Dict[s
             "data": data,
         }
 
-def generate_legacy(intent: dict, df: DataFrame) -> dict:
+def generate_legacy(intent: dict[str, Any], df: DataFrame) -> dict[str, Any]:
     df = clean_sales_data(df)
     metric = intent["metric"]
     agg = intent["aggregation"]  # "sum" | "mean" | "count"
@@ -132,6 +155,6 @@ def generate_legacy(intent: dict, df: DataFrame) -> dict:
     return {
         "metric": metric,
         "aggregation": agg,
-        "value": float(value) if not hasattr(value, "to_dict") else value.to_dict(),
+        "value": float(value) if not hasattr(value, "to_dict") else cast(Any, value).to_dict(),
         "chart_url": url,
     } 

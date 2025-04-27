@@ -4,7 +4,7 @@ import io
 
 client = TestClient(app)
 
-def test_sum_insight():
+def test_sum_insight() -> None:
     csv = b"sold_date,vehicle,sold_price,cost,profit,gross\n2025-04-01,F150,30000,25000,5000,4500"
     res = client.post("/v1/upload", files={"file": ("s.csv", io.BytesIO(csv), "text/csv")})
     uid = res.json()["upload_id"]
