@@ -1,17 +1,28 @@
 import matplotlib
 matplotlib.use('Agg')  # Must be before any other matplotlib imports
 
-from pandas import DataFrame
-import pandas as pd
+# Standard library imports
+import os
+import tempfile
+import uuid
+from typing import Any, Dict
+
+# Third-party imports
 import matplotlib.pyplot as plt
-import tempfile, os
+import pandas as pd
+from jinja2 import Environment, FileSystemLoader
+from pandas import DataFrame
 from supabase import create_client
-import uuid, datetime
+
+# Local application imports
 from api.services.data_cleaner import clean_sales_data
 from api.services.metrics import calc_lead_source_roi, calc_rep_leaderboard
-from api.services.metrics_sales import cost_per_sale, cost_per_sale_by_vendor, sales_by_salesperson, new_vs_used
-from typing import Dict, Any
-from jinja2 import Environment, FileSystemLoader
+from api.services.metrics_sales import (
+    cost_per_sale,
+    cost_per_sale_by_vendor,
+    new_vs_used,
+    sales_by_salesperson,
+)
 
 # init Supabase once
 import os as _os
@@ -69,7 +80,10 @@ def generate(insight_request: Dict[str, Any], dataframe: pd.DataFrame) -> Dict[s
             "top_speed": int(top["avg_days"]),
             "lagging_source": lag["lead_source"],
             "shift_budget": 1000,  # Example static value
-            "roi_delta": (top["net_profit"] - lag["net_profit"]) / lag["net_profit"] if lag["net_profit"] else 0,
+            "roi_delta": (
+                (top["net_profit"] - lag["net_profit"]) / lag["net_profit"] 
+                if lag["net_profit"] else 0
+            ),
         }
         chart_url = upload_chart(df_result)
         template = _env.get_template(f"{intent}.j2")

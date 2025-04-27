@@ -1,5 +1,8 @@
+import os
+import tempfile
+import textwrap
+
 from api.services.parser import validate_csv
-import tempfile, textwrap, os
 
 def write_tmp_csv(text: str):
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".csv")

@@ -1,8 +1,11 @@
+import os
+
+import pandas as pd
 from fastapi import APIRouter, HTTPException
+
+from api.routes.upload import tempfile
 from api.services.insight_engine import generate, generate_legacy
 from api.services.parser import validate_csv
-from api.routes.upload import tempfile
-import os, json
 
 router = APIRouter(prefix="/v1", tags=["analyze"])
 
@@ -13,7 +16,6 @@ async def analyze(upload_id: str, query: dict):
         raise HTTPException(404, "upload_id not found")
 
     rows = validate_csv(path)
-    import pandas as pd
 
     df = pd.DataFrame([r.model_dump() for r in rows])
 

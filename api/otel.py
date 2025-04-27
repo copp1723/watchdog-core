@@ -1,6 +1,5 @@
-import os
 import logging
-from typing import Optional
+import os
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -41,9 +40,11 @@ def setup_opentelemetry() -> bool:
     try:
         # Import OpenTelemetry modules only if we're going to use them
         from opentelemetry import trace
+        from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
+            OTLPSpanExporter
+        )
         from opentelemetry.sdk.trace import TracerProvider
         from opentelemetry.sdk.trace.export import BatchSpanProcessor
-        from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
         
         # Initialize provider
         provider = TracerProvider()

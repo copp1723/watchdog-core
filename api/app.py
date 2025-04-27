@@ -1,13 +1,15 @@
 """
 Main FastAPI application for Watchdog Core.
 """
-import os, sentry_sdk
-from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
+import os
+import sentry_sdk
 from fastapi import FastAPI
-from api.routes import upload  # <-- import
-from api.routes import debug
-from api.routes import analyze
+from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
+
 from api.otel import instrument_fastapi
+from api.routes import analyze
+from api.routes import debug
+from api.routes import upload  # <-- import
 
 sentry_sdk.init(
     dsn=os.getenv("SENTRY_DSN", ""),

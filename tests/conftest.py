@@ -1,14 +1,15 @@
-# Load environment variables first, before any imports
+# Standard library imports
+import os
+import uuid
 from pathlib import Path
+from unittest.mock import patch
+
+# Third-party imports
+import pytest
 from dotenv import load_dotenv
 
 # Load test environment variables
 load_dotenv(Path(__file__).parent.parent / '.env.test')
-
-import pytest
-from unittest.mock import MagicMock, patch
-import uuid
-import os
 
 # Ensure environment variables are set
 # SUPABASE_URL and SUPABASE_SERVICE_KEY are required for running tests,
@@ -48,7 +49,7 @@ class MockBucket:
         if hasattr(file_obj, 'close') and callable(file_obj.close):
             try:
                 file_obj.close()
-            except:
+            except Exception:
                 pass
                 
         # Store a reference that we got this file
