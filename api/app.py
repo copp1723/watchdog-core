@@ -2,14 +2,17 @@
 Main FastAPI application for Watchdog Core.
 """
 import os
+
 import sentry_sdk
 from fastapi import FastAPI
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 
 from api.otel import instrument_fastapi
-from api.routes import analyze
-from api.routes import debug
-from api.routes import upload  # <-- import
+from api.routes import (
+    analyze,
+    debug,
+    upload,  # <-- import
+)
 
 sentry_sdk.init(
     dsn=os.getenv("SENTRY_DSN", ""),
@@ -36,6 +39,6 @@ async def health_check() -> dict[str, str]:
 
 
 @app.get("/metrics")
-async def metrics():
+async def metrics() -> None:
     return {"status": "metrics stub"}
 
