@@ -1,10 +1,12 @@
+from typing import Any
+
 import pandas as pd
-from typing import Dict, Any
+
 
 def cost_per_sale(df: pd.DataFrame) -> float:
     return df['expense'].sum() / len(df)
 
-def cost_per_sale_by_vendor(df: pd.DataFrame) -> Dict[str, Any]:
+def cost_per_sale_by_vendor(df: pd.DataFrame) -> dict[str, Any]:
     cps = df.groupby('lead_source')['expense'].mean().to_dict()
     if not cps:
         return {}
@@ -28,7 +30,7 @@ def cost_per_sale_by_vendor(df: pd.DataFrame) -> Dict[str, Any]:
         }
     }
 
-def sales_by_salesperson(df: pd.DataFrame) -> Dict[str, Any]:
+def sales_by_salesperson(df: pd.DataFrame) -> dict[str, Any]:
     sales = df['sales_rep_name'].value_counts().to_dict()
     if not sales:
         return {}
@@ -49,7 +51,7 @@ def sales_by_salesperson(df: pd.DataFrame) -> Dict[str, Any]:
         }
     }
 
-def new_vs_used(df: pd.DataFrame) -> Dict[str, Any]:
+def new_vs_used(df: pd.DataFrame) -> dict[str, Any]:
     counts = df['is_new'].value_counts().to_dict()
     new_count = counts.get(True, 0)
     used_count = counts.get(False, 0)
