@@ -1,7 +1,8 @@
 from datetime import date
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError as PydanticValidationError
+
 
 class SalesLogRow(BaseModel):
     """
@@ -55,3 +56,5 @@ class SalesLogRow(BaseModel):
         "extra": "forbid",   # reject unknown columns
         "populate_by_name": True,
     }
+
+ValidationError = PydanticValidationError

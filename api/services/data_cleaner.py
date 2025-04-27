@@ -1,10 +1,14 @@
-import pandas as pd
 from typing import List
+
+import pandas as pd
+
 from .column_map import normalise_columns
+
 
 def clean_sales_data(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Clean and prepare sales data by normalizing column names and deriving additional fields.
+    Clean and prepare sales data by normalizing column names and deriving 
+    additional fields.
     
     Args:
         df: Raw pandas DataFrame from CSV import
@@ -16,7 +20,8 @@ def clean_sales_data(df: pd.DataFrame) -> pd.DataFrame:
     df = normalise_columns(df)
     
     # Derive missing but computable fields
-    if 'profit' in df.columns and 'cost' not in df.columns and 'sold_price' in df.columns:
+    if ('profit' in df.columns and 'cost' not in df.columns 
+            and 'sold_price' in df.columns):
         df['cost'] = df['sold_price'] - df['profit']
     
     # Ensure gross is available (canonical name for profit)
@@ -24,7 +29,10 @@ def clean_sales_data(df: pd.DataFrame) -> pd.DataFrame:
         df['gross'] = df['profit']
     
     # Clean numeric columns if they exist
-    numeric_cols: List[str] = ['listing_price', 'sold_price', 'profit', 'expense', 'cost', 'gross']
+    numeric_cols: List[str] = [
+        'listing_price', 'sold_price', 'profit', 
+        'expense', 'cost', 'gross'
+    ]
     for col in numeric_cols:
         if col in df.columns:
             # Handle string values with $ or commas

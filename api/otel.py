@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Optional, Any
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -41,7 +42,7 @@ def setup_opentelemetry() -> bool:
         # Import OpenTelemetry modules only if we're going to use them
         from opentelemetry import trace
         from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
-            OTLPSpanExporter
+            OTLPSpanExporter,
         )
         from opentelemetry.sdk.trace import TracerProvider
         from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -71,25 +72,27 @@ def setup_opentelemetry() -> bool:
 setup_opentelemetry()
 
 # Import instrumentation modules
+_fastapi_instrumentor: Optional[Any]
 try:
     from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    _fastapi_instrumentor = FastAPIInstrumentor
 except ImportError:
     logger.warning("FastAPI instrumentation not available")
-    FastAPIInstrumentor = None
+    _fastapi_instrumentor = None
 
-def instrument_fastapi(app):
+def instrument_fastapi(app: Any) -> None:
     """
     Instrument a FastAPI application with OpenTelemetry.
     
     Args:
         app: The FastAPI application to instrument.
     """
-    if not is_otel_enabled() or FastAPIInstrumentor is None:
+    if not is_otel_enabled() or _fastapi_instrumentor is None:
         logger.info("Skipping FastAPI instrumentation as OpenTelemetry is disabled")
         return
     
     try:
-        FastAPIInstrumentor.instrument_app(app)
+        _fastapi_instrumentor.instrument_app(app)
         logger.info("FastAPI application instrumented with OpenTelemetry")
     except Exception as e:
         logger.warning(f"Failed to instrument FastAPI application: {str(e)}")

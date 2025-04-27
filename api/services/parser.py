@@ -1,6 +1,6 @@
 import pandas as pd
-
-from api.models.sales_log import SalesLogRow, ValidationError
+from api.models.sales_log import SalesLogRow
+from pydantic import ValidationError
 
 
 def validate_csv(path: str) -> list[SalesLogRow]:

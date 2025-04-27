@@ -4,14 +4,14 @@ import pandas as pd
 
 
 def cost_per_sale(df: pd.DataFrame) -> float:
-    return df['expense'].sum() / len(df)
+    return float(df['expense'].sum()) / len(df)
 
 def cost_per_sale_by_vendor(df: pd.DataFrame) -> dict[str, float | str | dict[str, float | str]]:
     cps = df.groupby('lead_source')['expense'].mean().to_dict()
     if not cps:
         return {}
-    worst_vendor = max(cps, key=cps.get)
-    best_vendor = min(cps, key=cps.get)
+    worst_vendor = max(cps, key=lambda k: cps[k])
+    best_vendor = min(cps, key=lambda k: cps[k])
     worst_cps = cps[worst_vendor]
     best_cps = cps[best_vendor]
     shift_pct = 0.1  # Example static value
@@ -30,12 +30,12 @@ def cost_per_sale_by_vendor(df: pd.DataFrame) -> dict[str, float | str | dict[st
         }
     }
 
-def sales_by_salesperson(df: pd.DataFrame) -> dict[str, Any]:
+def sales_by_salesperson(df: pd.DataFrame) -> dict[str, float | str | dict[str, float | str]]:
     sales = df['sales_rep_name'].value_counts().to_dict()
     if not sales:
         return {}
-    top_rep = max(sales, key=sales.get)
-    low_rep = min(sales, key=sales.get)
+    top_rep = max(sales, key=lambda k: sales[k])
+    low_rep = min(sales, key=lambda k: sales[k])
     top_sales = sales[top_rep]
     low_sales = sales[low_rep]
     return {
@@ -51,7 +51,7 @@ def sales_by_salesperson(df: pd.DataFrame) -> dict[str, Any]:
         }
     }
 
-def new_vs_used(df: pd.DataFrame) -> dict[str, Any]:
+def new_vs_used(df: pd.DataFrame) -> dict[str, float | str | dict[str, float | str]]:
     counts = df['is_new'].value_counts().to_dict()
     new_count = counts.get(True, 0)
     used_count = counts.get(False, 0)

@@ -1,1 +1,1 @@
-from . import insight_engine
+from . import insight_engine as insight_engine
