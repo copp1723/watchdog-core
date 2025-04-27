@@ -35,4 +35,4 @@ class SalesLogRow(BaseModel):
     model_config = {
         "extra": "forbid",   # reject unknown columns
         "populate_by_name": True,
-    } 
+    }

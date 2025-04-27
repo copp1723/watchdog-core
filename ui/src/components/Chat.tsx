@@ -32,7 +32,7 @@ export const Chat = () => {
     if (!file) return;
 
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', file, file.name);
 
     try {
       const response = await fetch('/v1/upload', {
@@ -41,6 +41,15 @@ export const Chat = () => {
       });
       
       if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        console.error('Upload error details:', errorData);
+        
+        if (errorData && errorData.detail) {
+          const errorMessage = typeof errorData.detail === 'string' 
+            ? errorData.detail 
+            : 'Validation error in the uploaded file. Please check file format.';
+          throw new Error(errorMessage);
+        }
         throw new Error(`Upload failed with status: ${response.status}`);
       }
       
@@ -48,15 +57,15 @@ export const Chat = () => {
       console.log('Upload response:', json);
       
       // Set the upload ID from the response
-      if (json.id) {
-        setUploadId(json.id);
+      if (json.upload_id) {
+        setUploadId(json.upload_id);
         
         // Fetch insight for the uploaded file
-        await fetchInsight(json.id);
+        await fetchInsight(json.upload_id);
       } else {
         toast({
           title: "Upload Error",
-          description: "Failed to get upload ID from server response",
+          description: "Failed to get upload ID from server response. Server returned: " + JSON.stringify(json),
           variant: "destructive",
         });
       }
@@ -67,6 +76,12 @@ export const Chat = () => {
         description: error instanceof Error ? error.message : "An unknown error occurred",
         variant: "destructive",
       });
+      
+      // Reset the file input
+      const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+      if (fileInput) {
+        fileInput.value = '';
+      }
     }
   };
 
