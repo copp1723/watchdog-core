@@ -33,7 +33,7 @@ jobs:
           
       - name: Run ruff linting
         run: |
-          ruff check . --fix || true
+          ruff check . --fix
 
   type-check:
     name: Type Checking
