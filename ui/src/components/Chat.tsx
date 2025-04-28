@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { FileUp, Send, ChartBar, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,12 @@ import { toast } from '@/components/ui/use-toast';
 interface Insight {
   html: string;
   chart_url: string;
+  title?: string;
+  employee?: string;
+  employeeTitle?: string;
+  amount?: string;
+  percentage?: string;
+  actionItems?: string[];
 }
 
 export const Chat = () => {
@@ -19,6 +24,14 @@ export const Chat = () => {
   const [currentIntent, setCurrentIntent] = useState('general_analysis');
   const [uploadId, setUploadId] = useState<string | null>(null);
   
+  // Debug state
+  const [debugMode, setDebugMode] = useState(false);
+  const [debugInfo, setDebugInfo] = useState({
+    apiCalls: [],
+    responses: [],
+    errors: []
+  });
+
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(e.target.value);
   };
@@ -86,20 +99,36 @@ export const Chat = () => {
   };
 
   const fetchInsight = async (uploadId: string) => {
+    const apiCallMsg = `POST /v1/analyze/${uploadId} at ${new Date().toISOString()}`;
     try {
+      setDebugInfo(prev => ({
+        ...prev,
+        apiCalls: [...prev.apiCalls, apiCallMsg],
+      }));
       const res = await fetch(`/v1/analyze/${uploadId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ intent: currentIntent }),
       });
-      
+      let insight = null;
       if (!res.ok) {
+        setDebugInfo(prev => ({
+          ...prev,
+          errors: [...prev.errors, `Status ${res.status}: ${res.statusText}`],
+        }));
         throw new Error(`Analysis failed with status: ${res.status}`);
       }
-      
-      const insight = await res.json();
+      insight = await res.json();
       setInsights(prev => [...prev, insight]);
+      setDebugInfo(prev => ({
+        ...prev,
+        responses: [...prev.responses, JSON.stringify(insight)],
+      }));
     } catch (error) {
+      setDebugInfo(prev => ({
+        ...prev,
+        errors: [...prev.errors, error instanceof Error ? error.message : String(error)],
+      }));
       console.error('Analysis error:', error);
       toast({
         title: "Analysis Failed",
@@ -144,111 +173,153 @@ export const Chat = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)]">
-      <div className="flex-1 overflow-y-auto p-6 space-y-8">
-        {/* Assistant welcome message */}
-        <div className="flex items-start space-x-4 max-w-[85%]">
-          <div className="flex-1 bg-[#1E1E1E] rounded-xl p-4 text-foreground">
-            <p className="text-base leading-relaxed">How can I help you today?</p>
-          </div>
+    <>
+      <button 
+        style={{position: 'fixed', top: '10px', right: '10px', zIndex: 9999}}
+        onClick={() => setDebugMode(!debugMode)}
+      >
+        {debugMode ? 'Hide Debug' : 'Show Debug'}
+      </button>
+      {debugMode && (
+        <div style={{
+          position: 'fixed', 
+          bottom: '0', 
+          right: '0', 
+          width: '400px',
+          maxHeight: '50vh',
+          background: '#000', 
+          color: '#0f0', 
+          padding: '10px',
+          zIndex: 9999,
+          overflow: 'auto',
+          fontFamily: 'monospace',
+          fontSize: '12px'
+        }}>
+          <h3>API Calls:</h3>
+          <pre>{debugInfo.apiCalls.join('\n')}</pre>
+          <h3>Responses:</h3>
+          <pre>{debugInfo.responses.join('\n\n')}</pre>
+          <h3>Errors:</h3>
+          <pre>{debugInfo.errors.join('\n')}</pre>
         </div>
-
-        {/* User message */}
-        <div className="flex items-start justify-end space-x-4">
-          <div className="flex-1 bg-[#252525] rounded-xl p-4 text-foreground ml-auto max-w-[85%]">
-            <p className="text-base leading-relaxed">What sales rep sold the highest grossing deal?</p>
-          </div>
-        </div>
-
-        {/* Assistant message with insight */}
-        <div className="flex items-start space-x-4 max-w-[85%]">
-          <div className="flex-1 space-y-4">
-            <div className="bg-[#1E1E1E] rounded-xl p-4 text-foreground">
-              <p className="text-base leading-relaxed">I've analyzed your sales data and found the information about your highest grossing deal:</p>
-            </div>
-            
-            <InsightCard 
-              title="Sales Rep with Highest Total Gross"
-              employee="Ryan Ouzts"
-              employeeTitle="top performing rep"
-              amount="$19,923.19"
-              percentage="+27%"
-              actionItems={[
-                "Study Ryan Ouzts's sales strategies for team training.",
-                "Analyze their lead source performance for optimization."
-              ]}
-            />
-            
-            <div className="flex flex-wrap gap-3 mt-4">
-              <SuggestionChip
-                text="Show me profit by vehicle type"
-                onClick={() => handleSuggestionClick("Show me profit by vehicle type")}
-                icon={<ChartBar className="h-3.5 w-3.5" />}
-              />
-              <SuggestionChip
-                text="Which sales rep had the highest profit?"
-                onClick={() => handleSuggestionClick("Which sales rep had the highest profit?")}
-                icon={<TrendingUp className="h-3.5 w-3.5" />}
-              />
+      )}
+      <div className="flex flex-col h-[calc(100vh-4rem)]">
+        <div className="flex-1 overflow-y-auto p-6 space-y-8 pb-20">
+          {/* Assistant welcome message */}
+          <div className="flex items-start space-x-4 max-w-[85%]">
+            <div className="flex-1 bg-[#1E1E1E] rounded-xl p-4 text-foreground">
+              <p className="text-base leading-relaxed">How can I help you today?</p>
             </div>
           </div>
-        </div>
-        
-        {/* Render insights */}
-        {insights.length > 0 && (
+
+          {/* User message */}
+          <div className="flex items-start justify-end space-x-4">
+            <div className="flex-1 bg-[#252525] rounded-xl p-4 text-foreground ml-auto max-w-[85%]">
+              <p className="text-base leading-relaxed">What sales rep sold the highest grossing deal?</p>
+            </div>
+          </div>
+
+          {/* Assistant message with insight */}
           <div className="flex items-start space-x-4 max-w-[85%]">
             <div className="flex-1 space-y-4">
               <div className="bg-[#1E1E1E] rounded-xl p-4 text-foreground">
-                <p className="text-base leading-relaxed">I've analyzed your data and found some insights:</p>
+                <p className="text-base leading-relaxed">I've analyzed your sales data and found the information about your highest grossing deal:</p>
               </div>
               
-              {insights.map((insight, idx) => (
-                <Card key={idx} className="bg-[#1b1b1d] p-4 my-4">
-                  <div dangerouslySetInnerHTML={{ __html: insight.html }} />
-                  {insight.chart_url && (
-                    <img src={insight.chart_url} className="w-full mt-4 rounded-xl" />
-                  )}
-                </Card>
-              ))}
+              <InsightCard 
+                title="Sales Rep with Highest Total Gross"
+                employee="Ryan Ouzts"
+                employeeTitle="top performing rep"
+                amount="$19,923.19"
+                percentage="+27%"
+                actionItems={[
+                  "Study Ryan Ouzts's sales strategies for team training.",
+                  "Analyze their lead source performance for optimization."
+                ]}
+              />
+              
+              <div className="flex flex-wrap gap-3 mt-4">
+                <SuggestionChip
+                  text="Show me profit by vehicle type"
+                  onClick={() => handleSuggestionClick("Show me profit by vehicle type")}
+                  icon={<ChartBar className="h-3.5 w-3.5" />}
+                />
+                <SuggestionChip
+                  text="Which sales rep had the highest profit?"
+                  onClick={() => handleSuggestionClick("Which sales rep had the highest profit?")}
+                  icon={<TrendingUp className="h-3.5 w-3.5" />}
+                />
+              </div>
             </div>
           </div>
-        )}
-      </div>
+          
+          {/* Render insights */}
+          {insights.length > 0 && (
+            <div className="flex items-start space-x-4 max-w-[85%]">
+              <div className="flex-1 space-y-4">
+                <div className="bg-[#1E1E1E] rounded-xl p-4 text-foreground">
+                  <p className="text-base leading-relaxed">I've analyzed your data and found some insights:</p>
+                </div>
+                
+                {insights.map((insight, idx) => (
+                  <div key={idx} className="mt-4">
+                    {insight.html ? (
+                      <InsightCard rawHtml={insight.html} />
+                    ) : (
+                      <InsightCard 
+                        title={insight.title || "Insight"}
+                        employee={insight.employee || ""}
+                        employeeTitle={insight.employeeTitle || ""}
+                        amount={insight.amount || ""}
+                        percentage={insight.percentage || ""}
+                        actionItems={insight.actionItems || []}
+                      />
+                    )}
+                    {insight.chart_url && (
+                      <img src={insight.chart_url} className="w-full mt-4 rounded-xl" alt="Chart" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
-      {/* Input area */}
-      <div className="border-t border-muted bg-background/80 backdrop-blur-xl p-4 fixed bottom-0 left-0 right-0">
-        <div className="max-w-chat mx-auto flex items-end gap-3">
-          <div>
-            <input
-              type="file"
-              onChange={handleFileUpload}
-              className="hidden"
-              id="file-upload"
+        {/* Input area */}
+        <div className="border-t border-muted bg-background/80 backdrop-blur-xl p-4 fixed bottom-0 left-0 right-0">
+          <div className="max-w-chat mx-auto flex items-end gap-3">
+            <div>
+              <input
+                type="file"
+                onChange={handleFileUpload}
+                className="hidden"
+                id="file-upload"
+              />
+              <label
+                htmlFor="file-upload"
+                className="inline-flex items-center justify-center rounded-full text-sm bg-muted hover:bg-muted/80 h-10 w-10 cursor-pointer transition-all hover:scale-105"
+              >
+                <FileUp className="h-5 w-5 text-foreground" />
+              </label>
+            </div>
+            <Textarea
+              className="flex-1 bg-secondary-bg border-none text-foreground resize-none rounded-xl placeholder:text-muted-foreground min-h-[44px] py-3 px-4 focus:ring-1 focus:ring-accent/30 transition-all"
+              placeholder="Ask any question about your data..."
+              rows={1}
+              value={inputValue}
+              onChange={handleInputChange}
             />
-            <label
-              htmlFor="file-upload"
-              className="inline-flex items-center justify-center rounded-full text-sm bg-muted hover:bg-muted/80 h-10 w-10 cursor-pointer transition-all hover:scale-105"
+            <Button 
+              size="icon" 
+              className="rounded-full bg-accent hover:bg-accent/90 transition-all hover:scale-105"
+              onClick={handleSend}
+              disabled={!inputValue.trim()}
             >
-              <FileUp className="h-5 w-5 text-foreground" />
-            </label>
+              <Send className="h-5 w-5" />
+            </Button>
           </div>
-          <Textarea
-            className="flex-1 bg-secondary-bg border-none text-foreground resize-none rounded-xl placeholder:text-muted-foreground min-h-[44px] py-3 px-4 focus:ring-1 focus:ring-accent/30 transition-all"
-            placeholder="Ask any question about your data..."
-            rows={1}
-            value={inputValue}
-            onChange={handleInputChange}
-          />
-          <Button 
-            size="icon" 
-            className="rounded-full bg-accent hover:bg-accent/90 transition-all hover:scale-105"
-            onClick={handleSend}
-            disabled={!inputValue.trim()}
-          >
-            <Send className="h-5 w-5" />
-          </Button>
         </div>
       </div>
-    </div>
+    </>
   );
 };
